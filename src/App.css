@@ -1,0 +1,244 @@
+/* =======================================================
+   NOVA GESTIÓN TOTAL — ESTILO NEO-FUTURISTA
+   Layout de UNA COLUMNA — SIN COLUMNAS, SIN GRID
+   formulario centrado + preview debajo
+   ======================================================= */
+
+/* -----------------------------
+   BASE Y VARIABLES
+------------------------------*/
+:root {
+  --bg-gradient: linear-gradient(180deg, #0d0f19 0%, #111425 100%);
+  --pink-neon: #ff3ca6;
+  --purple-neon: #7a3cff;
+  --violet-soft: #b16cff;
+  --text-light: #bfb0c7;
+  --accent: #ff4bd8;
+  --shadow-neon: 0 0 18px rgba(255, 70, 200, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden !important;
+  /* ← evita el espacio morado */
+  font-family: "Poppins", sans-serif;
+  background: var(--bg-gradient);
+  color: var(--text-light);
+}
+
+/* -----------------------------
+   FONDO DECORATIVO
+------------------------------*/
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-image:
+    linear-gradient(120deg, rgba(255, 60, 166, 0.06) 0%, rgba(255, 60, 166, 0) 40%),
+    linear-gradient(300deg, rgba(122, 60, 255, 0.04) 0%, rgba(122, 60, 255, 0) 40%);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* -----------------------------
+   CONTENEDOR PRINCIPAL
+   UNA SOLA COLUMNA
+------------------------------*/
+.app-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px;
+  margin-left: 500px;
+}
+
+.app-inner {
+  width: 100%;
+  max-width: 820px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  z-index: 1;
+}
+
+/* -----------------------------
+   TÍTULO
+------------------------------*/
+h1 {
+  text-align: center;
+  color: var(--accent);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: var(--shadow-neon);
+}
+
+/* -----------------------------
+   FORMULARIO
+------------------------------*/
+#formulario {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 28px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 60, 166, 0.10);
+  box-shadow: 0 10px 36px rgba(10, 8, 18, 0.55);
+  backdrop-filter: blur(10px);
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+
+#formulario:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 46px rgba(140, 0, 255, 0.14);
+}
+
+label {
+  display: block;
+  margin-top: 14px;
+  margin-bottom: 6px;
+  color: var(--accent);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* Inputs, textarea y select */
+#formulario input,
+#formulario textarea,
+#formulario select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 60, 167, 0.22);
+  color: var(--text-light);
+  font-size: 1rem;
+  margin-bottom: 8px;
+  transition: border-color .18s, box-shadow .18s;
+}
+
+#formulario input:focus,
+#formulario textarea:focus,
+#formulario select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 14px rgba(255, 60, 166, 0.25);
+}
+
+.select-wrapper {
+  position: relative;
+}
+
+.select-wrapper::after {
+  content: "▾";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 1rem;
+  pointer-events: none;
+  text-shadow: var(--shadow-neon);
+}
+
+/* Archivo */
+#formulario input[type="file"] {
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px;
+}
+
+/* Botón */
+#btnGenerar {
+  width: 100%;
+  padding: 14px;
+  margin-top: 20px;
+  border: none;
+  background: linear-gradient(90deg, var(--pink-neon), var(--purple-neon));
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+  box-shadow: 0 0 20px rgba(255, 60, 166, 0.28);
+}
+
+#btnGenerar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(255, 60, 166, 0.45);
+}
+
+/* -----------------------------
+   PREVIEW (DEBAJO DEL FORM)
+------------------------------*/
+.preview-panel {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 60, 166, 0.10);
+  padding: 18px;
+  box-shadow: 0 10px 28px rgba(10, 8, 18, 0.45);
+}
+
+.preview-panel h3 {
+  margin: 0 0 12px 0;
+  color: var(--violet-soft);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Miniaturas */
+#preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+#preview img {
+  width: 100%;
+  height: 86px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 60, 166, 0.15);
+  box-shadow: 0 6px 18px rgba(122, 60, 255, 0.10);
+}
+
+.preview-file {
+  font-size: 0.78rem;
+  text-align: center;
+  color: #d9c5e6;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* -----------------------------
+   RESPONSIVE
+------------------------------*/
+@media (max-width:520px) {
+  #formulario {
+    padding: 20px;
+  }
+
+  #preview img {
+    height: 74px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+}
