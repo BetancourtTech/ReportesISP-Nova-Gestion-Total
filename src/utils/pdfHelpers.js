@@ -117,7 +117,7 @@ const generarPdf = async () => {
 
     const filename = `reporte-${(cliente || "cliente").replace(/[^\w-]+/g, "_")}.pdf`;
 
-    const webhookUrl = "TU_URL_DE_WEBHOOK_AQUI"; 
+    const webhookUrl = "https://n8n.wsmypantalla.online/webhook/a80b30e9-a131-42b1-b5df-3789b4f75602"; 
 
     if (webhookUrl) {
         try {
