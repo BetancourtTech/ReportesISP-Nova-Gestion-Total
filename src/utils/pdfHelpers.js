@@ -152,13 +152,13 @@ const generarPdf = async () => {
             cantidadImagenes: imagenesBase64.length
         };
 
-        const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
+        const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://n8n.wsmypantalla.online/webhook/a80b30e9-a131-42b1-b5df-3789b4f75602';
 
-        if (!webhookUrl) {
-            throw new Error('URL del webhook no configurada. Configura VITE_N8N_WEBHOOK_URL en las variables de entorno.');
-        }
-
-        console.log('Enviando a:', webhookUrl);
+        console.log('=== DEBUG INFO ===');
+        console.log('Variable de entorno:', import.meta.env.VITE_N8N_WEBHOOK_URL);
+        console.log('URL final:', webhookUrl);
+        console.log('Todas las env vars:', import.meta.env);
+        console.log('==================');
         console.log('Datos a enviar:', {
             cliente: dataParaN8n.cliente,
             nombreIsp: dataParaN8n.nombreIsp,
