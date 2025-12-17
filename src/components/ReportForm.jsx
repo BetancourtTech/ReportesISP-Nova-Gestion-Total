@@ -11,10 +11,8 @@ export default function ReportForm() {
     const [problema, setProblema] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [ingenieroNombre, setIngenieroNombre] = useState("");
-    const [previews, setPreviews] = useState([]); // { id, name, type, dataUrl }
+    const [previews, setPreviews] = useState([]);
     const fileInputRef = useRef(null);
-
-    /* ---------------- Helpers ---------------- */
 
     const readFileAsDataURL = (file) =>
         new Promise((resolve, reject) => {
@@ -45,12 +43,10 @@ export default function ReportForm() {
             };
 
             video.addEventListener("loadedmetadata", () => {
-                // intentamos posicionarnos en atSec o en la mitad si es más corto
                 const t = Math.min(atSec, Math.max(0, (video.duration || 0) / 2));
                 try {
                     video.currentTime = t;
                 } catch {
-                    // algunos navegadores requieren retraso
                     setTimeout(() => {
                         try {
                             video.currentTime = t;
@@ -75,16 +71,12 @@ export default function ReportForm() {
             });
 
             video.addEventListener("error", handleError);
-
-            // fuerza la carga
             video.load();
         });
 
     function cryptoId() {
         return Math.random().toString(36).slice(2, 9);
     }
-
-    /* ---------------- File input -> previews ---------------- */
 
     const onFilesChange = async (e) => {
         const files = Array.from(e.target.files || []);
@@ -96,26 +88,25 @@ export default function ReportForm() {
             try {
                 if (f.type.startsWith("image/")) {
                     const d = await readFileAsDataURL(f);
-                    results.push({ id: cryptoId(), name: f.name, type: "image", dataUrl: d });
+                    results.push({ id: cryptoId(), name: f.name, type: "image", dataUrl: d, file: f });
                 } else if (f.type.startsWith("video/")) {
                     try {
                         const thumb = await captureVideoThumbnail(f, 1.0);
-                        results.push({ id: cryptoId(), name: f.name, type: "video", dataUrl: thumb });
+                        results.push({ id: cryptoId(), name: f.name, type: "video", dataUrl: thumb, file: f });
                     } catch {
-                        results.push({ id: cryptoId(), name: f.name, type: "video", dataUrl: "" });
+                        results.push({ id: cryptoId(), name: f.name, type: "video", dataUrl: "", file: f });
                     }
                 } else {
-                    results.push({ id: cryptoId(), name: f.name, type: "file", dataUrl: "" });
+                    results.push({ id: cryptoId(), name: f.name, type: "file", dataUrl: "", file: f });
                 }
             } catch {
-                results.push({ id: cryptoId(), name: f.name, type: "error", dataUrl: "" });
+                results.push({ id: cryptoId(), name: f.name, type: "error", dataUrl: "", file: f });
             }
         }
 
         setPreviews(results);
     };
 
-    /* ---------------- addImageToPdf ---------------- */
     const addImageToPdf = (pdf, dataUrl, xMM, yMM, maxWmm) =>
         new Promise((resolve) => {
             const img = new Image();
@@ -124,7 +115,7 @@ export default function ReportForm() {
                 const pxH = img.naturalHeight || 1;
                 const ratio = pxH / pxW;
                 const widthMM = maxWmm;
-                const heightMM = Math.max(12, widthMM * ratio); // mínimo para visibilidad
+                const heightMM = Math.max(12, widthMM * ratio);
                 try {
                     pdf.addImage(dataUrl, "JPEG", xMM, yMM, widthMM, heightMM);
                 } catch {
@@ -138,28 +129,32 @@ export default function ReportForm() {
             img.src = dataUrl;
         });
 
-    /* ---------------- generarPdf (profesional) ---------------- */
-
     const generarPdf = async () => {
+        console.log('=== FUNCION GENERAR PDF INICIADA ===');
+        console.log('Cliente:', cliente);
+        console.log('ISP:', nombreIsp);
+        console.log('Telefono:', telefono);
+        
         if (!cliente || !nombreIsp || !telefono) {
+            console.error('Faltan datos requeridos');
             alert("Completa Cliente, ISP y Teléfono antes de generar el PDF.");
             return;
         }
 
+        console.log('Validación pasada, generando PDF...');
+
         const pdf = new jsPDF({ unit: "mm", format: "a4" });
         const pageW = 210;
         const pageH = 297;
-        const M = 20; // margen
+        const M = 20;
         const contentW = pageW - M * 2;
         const lineH = 7;
 
-        // colores
         const blueTitle = [20, 90, 200];
         const blueLabel = [10, 110, 220];
         const black = [0, 0, 0];
         const grey = [120, 120, 120];
 
-        // TITULO centrado
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(20);
         pdf.setTextColor(...blueTitle);
@@ -183,26 +178,19 @@ export default function ReportForm() {
             y += lineH;
         };
 
-        // Datos
         writeLabel("Cliente:");
         writeValue(cliente);
-
         writeLabel("Empresa / ISP:");
         writeValue(nombreIsp);
-
         writeLabel("Rol:");
         writeValue(rol || "-");
-
         writeLabel("Teléfono:");
         writeValue(telefono);
-
         writeLabel("Problema:");
         writeValue(problema || "-");
-
         writeLabel("Ingeniero:");
         writeValue(ingenieroNombre || "-");
 
-        // Descripción paginada
         writeLabel("Descripción:");
         pdf.setFont("helvetica", "normal");
         pdf.setFontSize(10);
@@ -210,7 +198,7 @@ export default function ReportForm() {
 
         const descriptionText = descripcion || "-";
         const wrapped = pdf.splitTextToSize(descriptionText, contentW);
-        const usableHeight = pageH - M - 30; // espacio usable en mm por página
+        const usableHeight = pageH - M - 30;
         const linesPerPage = Math.floor(usableHeight / lineH);
         let idx = 0;
 
@@ -224,7 +212,6 @@ export default function ReportForm() {
                 idx += chunk.length;
                 if (idx < wrapped.length) {
                     pdf.addPage();
-                    // encabezado mínimo en continuación
                     pdf.setFont("helvetica", "bold");
                     pdf.setFontSize(12);
                     pdf.setTextColor(...blueTitle);
@@ -239,12 +226,10 @@ export default function ReportForm() {
             }
         }
 
-        // Pie con fecha en la última página actual
         pdf.setFontSize(9);
         pdf.setTextColor(...grey);
         pdf.text(`Generado: ${new Date().toLocaleString()}`, M, pageH - 12);
 
-        // Galería de imágenes (si las hay)
         const imgs = previews.filter((p) => p.type === "image" && p.dataUrl).slice(0, 80);
         if (imgs.length > 0) {
             pdf.addPage();
@@ -272,18 +257,116 @@ export default function ReportForm() {
                 }
             }
 
-            // pie en la última página de imágenes
             pdf.setFontSize(9);
             pdf.setTextColor(...grey);
             pdf.text(`Generado: ${new Date().toLocaleString()}`, M, pageH - 12);
         }
 
-        // Guardar
+        try {
+            console.log('Iniciando envío a n8n...');
+            
+            const pdfBlob = pdf.output('blob');
+            
+            const pdfBase64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                reader.readAsDataURL(pdfBlob);
+            });
+
+            const imagenesBase64 = [];
+            for (const img of imgs) {
+                if (img.dataUrl) {
+                    imagenesBase64.push({
+                        nombre: img.file?.name || `imagen-${imagenesBase64.length + 1}`,
+                        base64: img.dataUrl.split(',')[1],
+                        tipo: img.type
+                    });
+                }
+            }
+
+            const dataParaN8n = {
+                cliente: cliente,
+                nombreIsp: nombreIsp,
+                rol: rol,
+                telefono: telefono,
+                problema: problema || '',
+                ingenieroNombre: ingenieroNombre || '',
+                descripcion: descripcion || '',
+                fecha: new Date().toISOString(),
+                fechaLegible: new Date().toLocaleString('es-CO', {
+                    dateStyle: 'full',
+                    timeStyle: 'short'
+                }),
+                pdfBase64: pdfBase64,
+                nombreArchivo: `reporte-${(cliente || "cliente").replace(/[^\w-]+/g, "_")}.pdf`,
+                imagenes: imagenesBase64,
+                cantidadImagenes: imagenesBase64.length
+            };
+
+            const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://n8n.wsmypantalla.online/webhook/a80b30e9-a131-42b1-b5df-3789b4f75602';
+
+            console.log('=== DEBUG INFO ===');
+            console.log('Variable de entorno:', import.meta.env.VITE_N8N_WEBHOOK_URL);
+            console.log('URL final:', webhookUrl);
+            console.log('Todas las env vars:', import.meta.env);
+            console.log('==================');
+            console.log('Datos a enviar:', {
+                cliente: dataParaN8n.cliente,
+                nombreIsp: dataParaN8n.nombreIsp,
+                telefono: dataParaN8n.telefono,
+                problema: dataParaN8n.problema,
+                cantidadImagenes: dataParaN8n.cantidadImagenes,
+                tamañoPDF: `${(pdfBase64.length / 1024 / 1024).toFixed(2)} MB`
+            });
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(dataParaN8n),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Error HTTP ${response.status}: ${errorText}`);
+            }
+
+            const resultado = await response.json();
+            console.log('Respuesta de n8n:', resultado);
+            
+            alert('Reporte enviado exitosamente a n8n');
+            
+        } catch (error) {
+            console.error('Error al enviar a n8n:', error);
+            
+            let mensajeError = 'Error al enviar el reporte';
+            
+            if (error.name === 'AbortError') {
+                mensajeError = 'Tiempo de espera agotado. Verifica tu conexión o el webhook de n8n.';
+            } else if (error.message.includes('Failed to fetch')) {
+                mensajeError = 'No se pudo conectar con n8n. Verifica:\n- La URL del webhook\n- Que n8n esté activo\n- Tu conexión a internet';
+            } else if (error.message.includes('URL del webhook no configurada')) {
+                mensajeError = error.message;
+            } else {
+                mensajeError = `Error: ${error.message}`;
+            }
+            
+            alert(mensajeError);
+            
+            console.log('Continuando con descarga local del PDF...');
+        }
+
         const filename = `reporte-${(cliente || "cliente").replace(/[^\w-]+/g, "_")}.pdf`;
         pdf.save(filename);
+        console.log('PDF guardado localmente:', filename);
     };
-
-    /* ---------------- Render ---------------- */
 
     return (
         <div className="report-root">
@@ -320,7 +403,7 @@ export default function ReportForm() {
                     <option value="Cliente sin internet">Cliente sin internet</option>
                     <option value="Falla de WhatsappAPI">Falla de WhatsappAPI</option>
                     <option value="Error de facturación">Error de facturación</option>
-                    <option value="Configuración de la Mikrotik">Configrración de la  Mikrotik</option>
+                    <option value="Configuración de la Mikrotik">Configuración de la Mikrotik</option>
                     <option value="Problema de Drivers">Problema de Drivers</option>
                     <option value="Falla en la plataforma">Falla en la plataforma</option>
                     <option value="Solucitud de migración">Solucitud de migración</option>
